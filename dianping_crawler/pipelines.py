@@ -98,21 +98,8 @@ class DianpingCrawlerPipeline(object):
         self.client.close()
 
     def process_item(self, item, spider):
-        if spider.name == 'food':
-            return self.process_food_item(item, spider)
-        if spider.name == 'user':
-            return self.process_user_item(item, spider)
-
-    def process_food_item(self, item, _spider):
         try:
-            self.db['food'].insert_one(item)
-        except Exception as e:
-            print(e)
-        return item
-
-    def process_user_item(self, item, _spider):
-        try:
-            self.db['user'].insert_one(item)
+            self.db[spider.name].insert_one(item)
         except Exception as e:
             print(e)
         return item
