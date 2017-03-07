@@ -8,8 +8,13 @@
 #     http://doc.scrapy.org/en/latest/topics/settings.html
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
-HOST = 'http://www.dianping.com'
+HOST = "http://www.dianping.com"
 
+""" 选中某个城市后点右边的搜索按钮，
+观察 URL 中的第一个数字，
+这个数字就是该城市对应的 ID
+"""
+# 城市拼音和对应的 ID
 CITY_IDS = [
     (2, 'beijing'),
 ]
@@ -18,11 +23,6 @@ CITY_IDS = [
 COOKIES = 'showNav=#nav-tab|0|0; navCtgScroll=0; navCtgScroll=0; _hc.v=a38e4721-eee7-9167-2f73-d0ce0182365d.1486954839; PHOENIX_ID=0a010444-15a68e17bd2-25c5754a; __utma=205923334.1798401956.1487817449.1487817449.1487817449.1; __utmc=205923334; __utmz=205923334.1487817449.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); default_ab=shopreviewlist%3AA%3A1; __mta=171228447.1487818368557.1487925211991.1487925530915.6; s_ViewType=10; JSESSIONID=BB36B3E0304AE3DD14BCCDF129EB2521; aburl=1; cy=2; cye=beijing'
 # convert cookies string to dict
 COOKIES = dict([tuple(p.strip().split('=', 1)) for p in COOKIES.split(';')])
-
-PROXIES = [
-    # spec https://github.com/constverum/ProxyBroker
-    'http://127.0.0.1:8888',
-]
 
 BOT_NAME = 'dianping_crawler'
 MONGO_DATABASE = 'dianping'
@@ -66,14 +66,12 @@ DEFAULT_REQUEST_HEADERS = {
 # See http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 SPIDER_MIDDLEWARES = {
     # 'dianping_crawler.middlewares.DianpingCrawlerSpiderMiddleware': 543,
-    # 'dianping_crawler.middlewares.DeltaSpiderMiddleware': 543,
 }
 
 # Enable or disable downloader middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-    # 'scrapy.downloadermiddlewares.retry.RetryMiddleware': 80,
-    # 'dianping_crawler.middlewares.DeltaSpiderMiddleware': 543,
+    'scrapy.downloadermiddlewares.retry.RetryMiddleware': 80,
     # 'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 750,
 }
 

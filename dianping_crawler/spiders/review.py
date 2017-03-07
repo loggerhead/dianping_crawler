@@ -35,14 +35,13 @@ class ReviewSpider(BaseSpider):
     logger = logging.getLogger(__name__)
 
     def init(self):
-        super().init(self)
-        self.db_collection = self.delta.db_client[self.name]
-        self.shops = self.delta.db_client['food'].find()
+        super().init()
+        self.shops_cursor = self.db['food'].find()
 
     def start_requests(self):
         self.init()
 
-        def tags_api_request(shop):
+        def gen_tags_api_request(shop):
             # for getting tagged_reviews urls
             api_args = shop['meta']
             api_args['shop_id'] = shop['_id']
@@ -51,9 +50,11 @@ class ReviewSpider(BaseSpider):
             request = scrapy.Request(url, self.parse, priority=100)
             request.meta['shop_id'] = shop['_id']
             request.meta['shop_url'] = shop['url']
-            return request
+            return self.delta.check_request(request)
 
-        return filter(bool, map(tags_api_request, self.shops))
+        requests = map(gen_tags_api_request, self.shops_cursor)
+        requests = itertools.chain(self.unfinished_requests, requests)
+        return filter(bool, requests)
 
     # getting tagged_reviews urls
     def parse(self, response):
@@ -111,16 +112,16 @@ class ReviewSpider(BaseSpider):
     def gen_tagged_review_requests(self, shop_id):
         cursor = self.db_collection.find()
 
-        def gen_tagged_review_request(item):
+        def gen_tagged_review_requests(item):
             for tag, _ in item['tags']:
                 url = self.add_host(self.TAGGED_API_FMT.format(summary_name=tag,
                                                                shop_id=shop_id))
                 request = scrapy.Request(url, self.parse_tagged_reviews)
                 request.meta['tag'] = tag
                 request.meta['shop_id'] = shop_id
-                yield request
+                yield self.delta.check_request(request)
 
-        list_of_requests = map(gen_tagged_review_request, cursor)
+        list_of_requests = map(gen_tagged_review_requests, cursor)
         requests = functools.reduce(itertools.chain, list_of_requests)
         return filter(bool, requests)
 
@@ -227,21 +228,3 @@ class ReviewSpider(BaseSpider):
             reviews.append(review)
 
         return reviews
-
-    def save_item_to_db(self, item):
-        try:
-            self.db_collection.insert_one(item)
-        except Exception as e:
-            # DEBUG:
-            import ipdb; ipdb.set_trace()
-            raise e
-
-    def extend_item_field_in_db(self, shop_id, field_name, values):
-        try:
-            cond = {'_id': shop_id}
-            update = {'$push': {field_name: {'$each': values}}}
-            self.db_collection.update_one(cond, update)
-        except Exception as e:
-            # DEBUG:
-            import ipdb; ipdb.set_trace()
-            raise e

@@ -30,8 +30,9 @@ class DeltaHelper(object):
         self.db_name = spider.settings.get('MONGO_DATABASE', 'delta')
 
     def connect_db(self):
+        self.db_collection_name = '{}_delta'.format(self.spider.name)
         self.db_client = pymongo.MongoClient(self.mongo_uri)
-        self.db_collection = self.db_client[self.db_name]['delta']
+        self.db_collection = self.db_client[self.db_name][self.db_collection_name]
 
     def fetch_unfinished_requests(self):
         cond = {'finished': False}
@@ -52,10 +53,13 @@ class DeltaHelper(object):
         cond = {'_id': self.serialized_request_id(serialized)}
         result = self.db_collection.find_one(cond)
 
-        if result and result['finished']:
-            self.logger.debug("Ignore %s", request.url)
-            return None
-        elif not result:
+        if result:
+            if result['finished']:
+                self.logger.debug("Ignore %s", request.url)
+                return None
+            else:
+                return request
+        else:
             try:
                 self.db_collection.insert_one(serialized)
                 return request

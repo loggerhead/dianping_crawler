@@ -14,7 +14,14 @@ class FoodSpider(BaseSpider):
     3. shop detail:                 /shop/75190365
     """
     name = "food"
+    """ 类别 ID，比如：
+
+        全部分类 => 0
+        美食 => 10
+        休闲娱乐 => 30
+    """
     CATEGORY_ID = 10
+
     WORDS_MAP = {
         '口味': 'taste',
         '环境': 'environment',
@@ -35,10 +42,9 @@ class FoodSpider(BaseSpider):
                 request.meta['city_name'] = city_name
                 yield request
 
-        unfinished = self.delta.fetch_unfinished_requests()
-        starts = start_requests_generator()
-        requests = itertools.chain(unfinished, starts)
-        return requests
+        requests = start_requests_generator()
+        requests = itertools.chain(self.unfinished_requests, requests)
+        return filter(bool, requests)
 
     # http://www.dianping.com/search/category/2/10/
     def parse(self, response):

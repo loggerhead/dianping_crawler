@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import logging
+import pymongo
 from datetime import datetime
 try:
     from urlparse import urljoin
@@ -16,6 +17,10 @@ class BaseSpider(scrapy.Spider):
     def init(self):
         self.delta = DeltaHelper(self)
         self.delta.connect_db()
+        self.db_name = self.settings.get('MONGO_DATABASE', 'dianping')
+        self.db = self.delta.db_client[self.db_name]
+        self.db_collection = self.db[self.name]
+        self.unfinished_requests = self.delta.fetch_unfinished_requests()
 
     def extract_int(self, text):
         i = -1
@@ -57,3 +62,23 @@ class BaseSpider(scrapy.Spider):
             self.logger.warning('not a valid date: "%s"', date)
             date = None
         return date
+
+    def save_item_to_db(self, item):
+        try:
+            self.db_collection.insert_one(item)
+        except pymongo.errors.DuplicateKeyError as e:
+            self.logger.warn(e)
+        except Exception as e:
+            # DEBUG:
+            import ipdb; ipdb.set_trace()
+            raise e
+
+    def extend_item_field_in_db(self, shop_id, field_name, values):
+        try:
+            cond = {'_id': shop_id}
+            update = {'$push': {field_name: {'$each': values}}}
+            self.db_collection.update_one(cond, update)
+        except Exception as e:
+            # DEBUG:
+            import ipdb; ipdb.set_trace()
+            raise e
