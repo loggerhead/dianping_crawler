@@ -60,8 +60,6 @@ class DeltaHelper(object):
                 self.db_collection.insert_one(serialized)
                 return request
             except Exception as e:
-                # DEBUG:
-                import ipdb; ipdb.set_trace()
                 raise e
                 self.logger.error('%s', serialized)
 
