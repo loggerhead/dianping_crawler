@@ -79,6 +79,7 @@ class DeltaHelper(object):
             return
         serialized = self.request_serialize(request)
         serialized['finished'] = True
+        del serialized['_id']
         cond = {'_id': self.serialized_request_id(serialized)}
         value = {'$set': serialized}
         self.db_collection.update_one(cond, value)
