@@ -69,8 +69,6 @@ class BaseSpider(scrapy.Spider):
         except pymongo.errors.DuplicateKeyError as e:
             self.logger.warn(e)
         except Exception as e:
-            # DEBUG:
-            import ipdb; ipdb.set_trace()
             raise e
 
     def extend_item_field_in_db(self, shop_id, field_name, values):
@@ -79,6 +77,4 @@ class BaseSpider(scrapy.Spider):
             update = {'$push': {field_name: {'$each': values}}}
             self.db_collection.update_one(cond, update)
         except Exception as e:
-            # DEBUG:
-            import ipdb; ipdb.set_trace()
             raise e
