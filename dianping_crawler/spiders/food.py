@@ -102,7 +102,7 @@ class FoodSpider(BaseSpider):
 
         for url in urls:
             url = self.add_host(url)
-            shop_id = url.rsplit('/', 1)[-1]
+            shop_id = self.extract_int(url.rsplit('/', 1)[-1])
             request = scrapy.Request(url, self.detail, priority=0)
             request.meta.update(response.meta)
             request.meta['shop_id'] = shop_id
@@ -147,10 +147,11 @@ class FoodSpider(BaseSpider):
         shop_id = response.meta['shop_id']
         city_id = response.meta['city_id']
         city_name = response.meta['city_name']
+        url = response.request.url or self.add_host('shop/{}'.format(shop_id))
 
         item = {
             '_id': shop_id,
-            'url': response.request.url,
+            'url': url,
             'name': shop_name,
             'address': address,
             'telephones': telephones,
