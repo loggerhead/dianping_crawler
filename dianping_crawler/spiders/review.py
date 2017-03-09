@@ -99,6 +99,7 @@ class ReviewSpider(BaseSpider):
         if next:
             url = urljoin(response.request.url, next.attr('href'))
             request = scrapy.Request(url, self.parse_review_all, priority=50)
+            request.meta['shop_id'] = shop_id
             request = self.delta.check_request(request)
             self.delta.mark_as_finished(response.request)
             yield request
