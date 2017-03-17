@@ -36,7 +36,7 @@ class ReviewSpider(BaseSpider):
 
     def init(self):
         super().init()
-        self.shops_cursor = self.db['food'].find()
+        self.shops_cursor = self.db['food'].find(no_cursor_timeout=True)
 
     def start_requests(self):
         self.init()
@@ -111,7 +111,7 @@ class ReviewSpider(BaseSpider):
             return requests
 
     def gen_tagged_review_requests(self, shop_id):
-        cursor = self.db_collection.find()
+        cursor = self.db_collection.find(no_cursor_timeout=True)
 
         def gen_tagged_review_requests(item):
             for tag, _ in item['tags']:

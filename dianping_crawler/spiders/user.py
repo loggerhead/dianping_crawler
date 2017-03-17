@@ -32,7 +32,7 @@ class UserSpider(BaseSpider):
 
     def init(self):
         super().init()
-        self.reviews_cursor = self.db['review'].find()
+        self.reviews_cursor = self.db['review'].find(no_cursor_timeout=True)
 
     def start_requests(self):
         self.init()

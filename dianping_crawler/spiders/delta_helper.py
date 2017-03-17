@@ -36,7 +36,7 @@ class DeltaHelper(object):
 
     def fetch_unfinished_requests(self):
         cond = {'finished': False}
-        entries = self.db_collection.find(cond)
+        entries = self.db_collection.find(cond, no_cursor_timeout=True)
 
         def gen_request(serialized):
             if serialized:
